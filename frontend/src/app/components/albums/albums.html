@@ -1,0 +1,110 @@
+<div class="albums-container container">
+  <div class="d-flex align-items-center gap-3 mb-5">
+    <app-return></app-return>
+    <h2>Mes albums</h2>
+    <form (ngSubmit)="openCreateModal()" class="create-form">
+      <button class="btn-add" type="submit" [disabled]="loading"><i class="bi bi-plus"></i></button>
+    </form>
+  </div>
+
+  <div *ngIf="loading" class="spinner" aria-label="Chargement"></div>
+  <p *ngIf="error" class="error">{{ error }}</p>
+  <div class="albums-grid">
+    <div class="album-card" *ngFor="let a of albums" (click)="openAlbumGallery(a)" role="button" tabindex="0">
+      <div class="cover">
+        <img *ngIf="getCoverUrl(a._id) as cover" [src]="cover" [alt]="a.title">
+        <span *ngIf="!getCoverUrl(a._id)" class="placeholder">{{ a.title | slice:0:1 }}</span>
+      </div>
+      <div class="card-body">
+        <h4 class="title">{{ a.title }}</h4>
+        <div class="card-actions">
+          <button class="primary" (click)="shareAlbum(a); $event.stopPropagation()"><i class="bi bi-share"></i></button>
+          <button class="danger" (click)="remove(a); $event.stopPropagation()"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="success" *ngIf="shareMessage">{{ shareMessage }}</p>
+
+  <div class="modal-overlay" *ngIf="shareModalOpen" (click)="closeShareModal()"></div>
+  <div class="share-modal" *ngIf="shareModalOpen" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="share-header">
+      <h3><i class="bi bi-share"></i> Partager l’album</h3>
+      <button class="close-btn" (click)="closeShareModal()" aria-label="Fermer">×</button>
+    </div>
+    <div class="share-body">
+      <div class="share-preview">
+        <img *ngIf="sharePreviewUrl" [src]="sharePreviewUrl" alt="Couverture">
+        <div class="meta">
+          <h4>{{ shareTitle }}</h4>
+          <p>{{ shareText }}</p>
+          <a [href]="shareUrlText" target="_blank">{{ shareUrlText }}</a>
+        </div>
+      </div>
+      <div class="share-actions">
+        <button (click)="shareVia('whatsapp')" class="wa"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+        <button (click)="shareVia('messenger')" class="ms"><i class="bi bi-messenger"></i> Messenger</button>
+        <button (click)="shareVia('facebook')" class="fb"><i class="bi bi-facebook"></i> Facebook</button>
+        <button (click)="shareVia('twitter')" class="tw"><i class="bi bi-twitter-x"></i> Twitter</button>
+        <button (click)="shareVia('sms')" class="sms"><i class="bi bi-chat-dots"></i> SMS</button>
+        <button (click)="shareVia('email')" class="mail"><i class="bi bi-envelope"></i> Email</button>
+        <button (click)="copyShareLink()" class="cp"><i class="bi bi-clipboard"></i> Copier le lien</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="modalOpen" (click)="closeModal()"></div>
+  <div class="albums-modal" *ngIf="modalOpen" role="dialog" aria-modal="true" aria-labelledby="createAlbumTitle">
+    <div class="modal-header">
+      <h3 id="createAlbumTitle"><i class="bi bi-journal-richtext"></i> Créer un album</h3>
+      <button class="close-btn" (click)="closeModal()" aria-label="Fermer">×</button>
+    </div>
+    <form (ngSubmit)="submitModal()" class="modal-form d-flex flex-column gap-4" (click)="$event.stopPropagation()">
+      <div class="form-row">
+        <label>Nom de l'album</label>
+        <input type="text" [(ngModel)]="modalTitle" name="modalTitle" required [class.invalid]="titleInvalid">
+        <div class="hint" *ngIf="titleInvalid">Le titre est requis.</div>
+      </div>
+      <div class="form-row">
+        <label>Photo de couverture (JPG/PNG, max 5MB)</label>
+        <div class="file-row">
+          <input id="coverFile" type="file" accept="image/jpeg,image/jpg,image/png" (change)="onCoverSelected($event)"
+            hidden>
+          <label class="btn-file" for="coverFile"><i class="bi bi-image"></i> Choisir une couverture</label>
+          <span class="file-name">{{ coverFile?.name || 'Aucun fichier choisi' }}</span>
+        </div>
+        <div class="cover-preview" *ngIf="coverPreview">
+          <img [src]="coverPreview" alt="Prévisualisation couverture">
+        </div>
+        <div class="hint error" *ngIf="coverError">{{ coverError }}</div>
+      </div>
+      <div class="form-row">
+        <label>Photos (multiple, max 50, JPG/PNG)</label>
+        <div class="file-row">
+          <input id="photosFiles" type="file" multiple accept="image/jpeg,image/jpg,image/png"
+            (change)="onPhotosSelected($event)" hidden>
+          <label class="btn-file" for="photosFiles"><i class="bi bi-images"></i> Sélectionner des photos</label>
+          <span class="file-name">{{ photosCount > 0 ? (photosCount + ' fichier(s)') : 'Aucun fichier choisi' }}</span>
+        </div>
+        <div class="thumbs" *ngIf="photosPreviews.length">
+          <div class="thumb" *ngFor="let p of photosPreviews; let i = index">
+            <img [src]="p.url" [alt]="p.file.name">
+            <button type="button" class="thumb-remove" (click)="removePhoto(i)" aria-label="Supprimer">×</button>
+          </div>
+        </div>
+        <div class="hint" *ngIf="photosCount > 0">{{ photosCount }} sélectionnée(s)</div>
+        <div class="hint error" *ngIf="photosError">{{ photosError }}</div>
+      </div>
+      <div class="progress" *ngIf="uploadProgress > 0">
+        <div class="bar" [style.width.%]="uploadProgress"></div>
+        <span>{{ uploadProgress }}%</span>
+      </div>
+      <div class="actions">
+        <button type="submit" [disabled]="loadingSubmit" class="btn-validate">Valider</button>
+        <button type="button" class="secondary" (click)="closeModal()">Annuler</button>
+      </div>
+      <p class="success" *ngIf="submitSuccess">{{ submitSuccess }}</p>
+      <p class="error" *ngIf="submitError">{{ submitError }}</p>
+    </form>
+  </div>
+</div>

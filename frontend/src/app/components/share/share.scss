@@ -1,0 +1,21 @@
+.share-container {
+  margin: 2rem auto;
+  color: var(--brand-text);
+}
+
+.subtitle {
+  color: var(--brand-accent);
+}
+
+.share-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 480px;
+}
+
+.btn-primary {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary-dark);
+}
+

@@ -1,0 +1,9 @@
+<div class="login-container">
+  <h2>Accès à la galerie</h2>
+  <p>Veuillez entrer le mot de passe pour voir les photos.</p>
+  <form (ngSubmit)="login()">
+    <input type="password" [(ngModel)]="password" name="password" placeholder="Mot de passe">
+    <button type="submit">Entrer</button>
+  </form>
+  <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+</div>

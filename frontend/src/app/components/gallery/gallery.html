@@ -1,0 +1,113 @@
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <app-return></app-return>
+        <h2 class="my-4 d-flex align-items-end gap-2">
+          Galerie de photos
+          <span class="badge rounded-pill photo-count fst-italic">{{ photos.length }}</span>
+        </h2>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn-selected btn btn-outline-primary" (click)="toggleSelectionMode()" [attr.aria-pressed]="selectionMode">
+            {{ selectionMode ? 'Annuler sélection' : 'Sélectionner' }}
+          </button>
+          <button *ngIf="selectionMode" class="btn btn-outline-primary select-all-btn" (click)="toggleSelectAll()"
+            [class.active]="allSelected" [attr.aria-pressed]="allSelected" title="Tout sélectionner">
+            {{ allSelected ? 'Tout désélectionner' : 'Tout sélectionner' }}
+          </button>
+          <button *ngIf="selectionMode" class="btn btn-primary" (click)="downloadSelectedZip()"
+            [disabled]="!hasSelection()" title="Télécharger la sélection (ZIP)">
+            Télécharger sélection (ZIP)
+          </button>
+          <button *ngIf="selectionMode" class="btn btn-danger ms-2" (click)="deleteSelected()"
+            [disabled]="!hasSelection()" title="Supprimer la sélection">
+            Supprimer la sélection
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Add Photo Card -->
+    <div class="col-md-4 mb-4">
+      <label for="file-upload" class="card add-photo-card h-100">
+        <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
+          <i class="bi bi-camera-fill fs-1"></i>
+          <p class="mt-2 mb-0">Ajouter des photos</p>
+        </div>
+      </label>
+      <input id="file-upload" type="file" multiple (change)="onFileSelected($event)" style="display: none;"
+        accept="image/*">
+    </div>
+
+    <!-- Photo items -->
+    <div *ngFor="let photo of photos; let i = index" class="col-md-4 mb-4 photo-item">
+      <div class="card h-100" [class.selected]="selectedIndex === i" [class.selected-card]="isSelected(i)">
+        <img [src]="photo.url" [alt]="photo.alt" class="card-img-top" loading="lazy"
+          (click)="selectionMode ? toggleSelection(i) : openLightbox(i)"
+          (keydown.enter)="selectionMode ? toggleSelection(i) : openLightbox(i)"
+          (keydown.space)="selectionMode ? toggleSelection(i) : openLightbox(i)" tabindex="0"
+          [attr.role]="selectionMode ? 'checkbox' : 'button'" [attr.aria-checked]="selectionMode ? isSelected(i) : null"
+          aria-label="Voir la photo en grand">
+        <span class="select-check" *ngIf="isSelected(i)" aria-hidden="true">
+          <i class="bi bi-check2"></i>
+        </span>
+        <div class="card-img-overlay d-flex flex-column justify-content-center align-items-center">
+
+          <div class="btn-group">
+            <button class="btn btn-light" (click)="downloadPhoto(photo)" title="Télécharger">
+              <i class="bi bi-download"></i>
+            </button>
+            <button class="btn btn-danger" (click)="deletePhoto(photo)" title="Supprimer">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="photo.progress !== undefined && photo.progress < 100"
+          class="progress position-absolute bottom-0 start-0 end-0" style="height: 5px;">
+          <div class="progress-bar" role="progressbar" [style.width.%]="photo.progress"></div>
+        </div>
+        <div *ngIf="photo.error" class="alert alert-danger mb-0 small p-1 text-center">
+          {{ photo.error }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectionMode" class="row">
+    <div class="col-12 d-flex align-items-center gap-3">
+      <div *ngIf="selectedDownloadProgress > 0 && selectedDownloadProgress < 100" class="flex-grow-1">
+        <div class="progress" style="height: 6px;">
+          <div class="progress-bar" role="progressbar" [style.width.%]="selectedDownloadProgress"></div>
+        </div>
+      </div>
+      <div *ngIf="selectedDownloadError" class="alert alert-danger py-1 px-2 mb-0">
+        {{ selectedDownloadError }}
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedIndex !== null" class="lightbox" role="dialog" aria-modal="true" aria-label="Image en plein écran"
+    (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()"
+    (click)="closeLightbox()">
+    <button class="lightbox-close" (click)="closeLightbox(); $event.stopPropagation()" aria-label="Fermer">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="lightbox-indicator">{{ (selectedIndex || 0) + 1 }}/{{ photos.length }}</div>
+    <button class="lightbox-nav left" (click)="prev(); $event.stopPropagation()" aria-label="Image précédente">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <div class="lightbox-content" (wheel)="onWheel($event)" (dblclick)="onImageDblClick($event)"
+      (mousedown)="onMouseDown($event)" (mousemove)="onMouseMove($event)" (mouseup)="onMouseUp()"
+      (mouseleave)="onMouseUp()" (click)="$event.stopPropagation()">
+      <div class="lightbox-spinner" *ngIf="imageLoading" aria-label="Chargement"></div>
+      <img class="lightbox-image" [src]="photos[selectedIndex!]?.url" [alt]="photos[selectedIndex!]?.alt"
+        [class.slide-next]="animationDirection === 'next'" [class.slide-prev]="animationDirection === 'prev'"
+        [style.transform]="imageTransform" [class.loading]="imageLoading">
+    </div>
+    <button class="lightbox-nav right" (click)="next(); $event.stopPropagation()" aria-label="Image suivante">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</div>
