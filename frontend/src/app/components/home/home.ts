@@ -1,13 +1,13 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './home.html',
   styleUrls: ['./home.scss']
 })
@@ -23,7 +23,7 @@ export class HomeComponent {
   dropdownOpen = false;
   @ViewChild('menuRef') menuRef?: ElementRef<HTMLDivElement>;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router) { }
 
   async submit() {
     this.error = '';
@@ -113,7 +113,7 @@ export class HomeComponent {
     const eRef = ev.currentTarget as HTMLElement;
     if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'ArrowDown') {
       ev.preventDefault();
-      const fakeMouse = { currentTarget: eRef, stopPropagation: () => {} } as unknown as MouseEvent;
+      const fakeMouse = { currentTarget: eRef, stopPropagation: () => { } } as unknown as MouseEvent;
       this.openMenu(fakeMouse);
     }
     if (ev.key === 'Escape') {
