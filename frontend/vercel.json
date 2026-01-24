@@ -6,7 +6,8 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist/frontend/browser"
+        "distDir": "dist/frontend/browser",
+        "buildCommand": "ng build --configuration=production"
       }
     }
   ],
