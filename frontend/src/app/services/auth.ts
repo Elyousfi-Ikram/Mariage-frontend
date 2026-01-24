@@ -40,9 +40,11 @@ export class AuthService {
 
   async register(email: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> {
     try {
+      console.log('Sending register request:', { email, name }); // Do not log password
       await this.http.post(`${this.apiUrl}/register`, { email, password, name }).toPromise();
       return { success: true };
     } catch (e: any) {
+      console.error('Register error:', e);
       return { success: false, error: e?.error?.message || 'Erreur inscription' };
     }
   }
