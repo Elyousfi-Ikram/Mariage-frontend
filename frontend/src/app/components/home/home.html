@@ -26,21 +26,27 @@
 
 
 
-  <form (ngSubmit)="submit()" class="auth-form" aria-live="polite">
+  <form #authForm="ngForm" (ngSubmit)="authForm.form.valid && submit()" class="auth-form" aria-live="polite">
     <div class="form-group">
       <label>Email</label>
-      <input type="email" [(ngModel)]="email" name="email" required placeholder="email@exemple.com">
+      <input type="email" [(ngModel)]="email" name="email" required email placeholder="email@exemple.com" #emailInput="ngModel">
+      <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="error-msg">
+        Email valide requis.
+      </div>
     </div>
     <div *ngIf="mode !== 'reset'" class="form-group">
       <label>Mot de passe</label>
       <input type="password" [(ngModel)]="password" name="password" required minlength="6"
-        placeholder="Votre mot de passe">
+        placeholder="Votre mot de passe" #pwdInput="ngModel">
+        <div *ngIf="pwdInput.invalid && (pwdInput.dirty || pwdInput.touched)" class="error-msg">
+          6 caractères minimum.
+        </div>
     </div>
     <div *ngIf="mode === 'register'" class="form-group">
       <label>Nom</label>
       <input type="text" [(ngModel)]="name" name="name" placeholder="Votre nom">
     </div>
-    <button type="submit" class="primary-btn" [disabled]="loading">
+    <button type="submit" class="primary-btn" [disabled]="loading || !authForm.form.valid">
       {{ mode === 'login' ? 'Se connecter' : mode === 'register' ? 'Créer mon compte' : 'Réinitialiser' }}
     </button>
     <div *ngIf="loading" class="spinner" aria-label="Chargement"></div>
