@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth';
 
 @Injectable({
   providedIn: 'root'
@@ -9,17 +10,21 @@ import { environment } from '../../environments/environment';
 export class GalleryService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
   getPhotos(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/photos`);
+    const opts = this.auth.getAuthHeaders();
+    return this.http.get<string[]>(`${this.apiUrl}/photos`, opts);
   }
 
   uploadPhotos(formData: FormData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/upload`, formData, {
+    const baseOpts = this.auth.getAuthHeaders();
+    const opts: any = {
+      ...baseOpts,
       reportProgress: true,
-      observe: 'events'
-    });
+      observe: 'events' as const
+    };
+    return this.http.post(`${this.apiUrl}/upload`, formData, opts);
   }
 
   getDownloadAllUrl(): string {
@@ -27,7 +32,8 @@ export class GalleryService {
   }
 
   deletePhoto(photoName: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/photos/${photoName}`);
+    const opts = this.auth.getAuthHeaders();
+    return this.http.delete(`${this.apiUrl}/photos/${photoName}`, opts);
   }
 
   getDownloadSelectedUrl(): string {
