@@ -119,3 +119,21 @@ a:focus-visible,
   outline: none;
   box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.35);
 }
+
+@media (max-width: 576px) {
+  body {
+    font-size: var(--text-sm);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+  }
+}
